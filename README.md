@@ -22,12 +22,11 @@ If you have any questions, feature requests, bug reports, or you just want to ha
   <video src="https://github.com/user-attachments/assets/2420e215-af68-48ea-8c75-5c45aacef083" width="540" controls></video>
 </div>
 <div align="center">
-  <img width="33%" alt="full ui 1" src="https://github.com/user-attachments/assets/46b073fc-7a88-4b88-be9b-7e07e767c538" />
-  <img width="33%" alt="skippable segments" src="https://github.com/user-attachments/assets/8121897e-1299-4583-b4fc-27e22ea5641a" />
-  <img width="33%" alt="transcript ui and skip to word" src="https://github.com/user-attachments/assets/a18b0797-b4c2-49f2-be92-33827ea8e456" />
+  <img width="32%" alt="full ui 1" src="https://github.com/user-attachments/assets/46b073fc-7a88-4b88-be9b-7e07e767c538" />
+  <img width="32%" alt="skippable segments" src="https://github.com/user-attachments/assets/8121897e-1299-4583-b4fc-27e22ea5641a" />
+  <img width="32%" alt="transcript ui and skip to word" src="https://github.com/user-attachments/assets/a18b0797-b4c2-49f2-be92-33827ea8e456" />
 </div>
-
 
 ---
 
-(*TODO: Add more info here before releasing anything public-ish.*)
+(*TODO: Add more info here before launching v1.*)
