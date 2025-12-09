@@ -38,7 +38,8 @@ client.interceptors.request.use(async (config) => {
 
 export const api = {
     search: async (term: string) => {
-        const response = await client.get(`/search/byterm?q=${encodeURIComponent(term)}`);
+        // Use 'similar' param to prioritize title matches for better relevance
+        const response = await client.get(`/search/byterm?q=${encodeURIComponent(term)}&similar`);
         return response.data;
     },
 
@@ -53,7 +54,11 @@ export const api = {
     },
 
     trending: async () => {
-        const response = await client.get('/podcasts/trending?max=10');
+        const maxTrendingPodcasts = 100;
+        // Calculate days ago as epoch timestamp (seconds)
+        const daysAgo = 14;
+        const sinceEpoch = Math.floor(Date.now() / 1000) - (daysAgo * 24 * 60 * 60);
+        const response = await client.get(`/podcasts/trending?max=${maxTrendingPodcasts}&lang=en&since=${sinceEpoch}`);
         return response.data;
     }
 };
