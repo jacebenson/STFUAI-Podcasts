@@ -268,7 +268,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
             get().removeFromQueue(next.id);
         } else {
             // No next episode, close player
-            set({ isPlaying: false, isPlayerOpen: false, currentEpisode: null });
+            set({ isPlaying: false, isPlayerOpen: false, currentEpisode: null, currentTime: 0, duration: 0 });
+            // Persist the cleared state so we don't reload a stale episode on app restart
+            await get().saveState();
         }
     },
 
@@ -292,7 +294,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         const prefs = await db.getPreferences();
         const seconds = prefs.skipForwardSeconds || 30;
         const currentTime = get().currentTime;
-        const duration = get().duration;
+        // Use Infinity as fallback if duration hasn't loaded yet (avoids seeking to 0)
+        const duration = get().duration || Infinity;
         get().seek(Math.min(duration, currentTime + seconds));
     },
 
@@ -310,7 +313,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         // Update local state
         const episode = store.episodes[episodeId];
         if (episode) {
-            const updatedEpisode = { ...episode, isPlayed: true, playbackPosition: 0 };
+            // Clear all episode data except marking it as played
+            // This ensures re-playing the episode will trigger fresh download and transcription
+            const updatedEpisode = {
+                ...episode,
+                isPlayed: true,
+                playbackPosition: 0,
+                transcript: undefined,
+                adSegments: undefined,
+                transcriptionStatus: undefined,
+            };
             await db.saveEpisode(updatedEpisode);
 
             // Update store
@@ -334,12 +346,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         const { currentEpisode } = get();
         if (currentEpisode?.id === episodeId) {
             // Clear current episode so it's not treated as "interrupted" if we play next
-            set({ currentEpisode: null });
+            set({ currentEpisode: null, currentTime: 0, duration: 0 });
 
             if (autoAdvance) {
                 await get().playNextInQueue();
             } else {
                 set({ isPlaying: false });
+                // Persist the cleared state so we don't reload a stale episode on app restart
+                await get().saveState();
             }
         }
     },
@@ -360,9 +374,32 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
         const state = await db.getPlayerState();
         if (state) {
+            // Fetch full episode data from db to hydrate lightweight copies
+            // This runs before loadEpisodes(), so we read directly from db
+            const allEpisodes = await db.getEpisodes();
+
+            // Hydrate currentEpisode with full data (transcript, adSegments, etc.)
+            let fullCurrentEpisode = state.currentEpisode;
+            if (state.currentEpisode?.id) {
+                const fullEp = allEpisodes[state.currentEpisode.id];
+                if (fullEp) {
+                    // Use full episode but preserve playback position from saved state
+                    fullCurrentEpisode = {
+                        ...fullEp,
+                        playbackPosition: state.currentTime || fullEp.playbackPosition || 0
+                    };
+                }
+            }
+
+            // Hydrate queue items with full data
+            const fullQueue = (state.queue || []).map((queueEp: Episode) => {
+                const fullEp = allEpisodes[queueEp.id];
+                return fullEp || queueEp; // Use full if available, else keep lightweight
+            });
+
             set({
-                currentEpisode: state.currentEpisode,
-                queue: state.queue || [],
+                currentEpisode: fullCurrentEpisode,
+                queue: fullQueue,
                 playbackRate: state.playbackRate || defaultRate,
                 defaultPlaybackRate: defaultRate,
                 currentTime: state.currentTime || 0,

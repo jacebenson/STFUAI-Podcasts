@@ -485,14 +485,15 @@ export default function Settings() {
                             value={preferences.compressionQuality}
                             onChange={(e) => updatePreference('compressionQuality', parseInt(e.target.value) as CompressionQuality)}
                         >
-                            <option value="32">32 kbps (Smallest, lower quality)</option>
-                            <option value="64">64 kbps (Recommended)</option>
-                            <option value="96">96 kbps (Better quality)</option>
-                            <option value="128">128 kbps (Best quality, larger files)</option>
+                            <option value="0">Original (No Compression)</option>
+                            <option value="16">16 kbps (Smallest, lower quality)</option>
+                            <option value="32">32 kbps (Recommended)</option>
+                            <option value="64">64 kbps (Better quality)</option>
+                            <option value="96">96 kbps (Best quality, larger files)</option>
                         </select>
                         <p className="setting-description">
                             Lower bitrates reduce file size and transcription costs but may affect audio quality.
-                            All audio files are automatically compressed before transcription.
+                            Select "Original" to skip compression and upload the full-quality audio file for transcription.
                         </p>
                     </div>
 

@@ -75,6 +75,12 @@ export const AudioController: React.FC = () => {
                             audio.currentTime = savedTime;
                         }
 
+                        // Update store with duration immediately so UI and skip buttons work
+                        usePlayerStore.setState({
+                            duration: audio.duration,
+                            currentTime: audio.currentTime
+                        });
+
                         //Re-apply playback rate since it automatically tries to reset 
                         // to 1.0 on src change
                         audio.playbackRate = usePlayerStore.getState().playbackRate;

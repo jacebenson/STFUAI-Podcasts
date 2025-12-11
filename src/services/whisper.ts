@@ -1,21 +1,36 @@
-import type { Transcript, TranscriptSegment, TranscriptWord } from '../types';
+import type { Transcript, CompressionQuality } from '../types';
 
-
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
-
-const API_ENDPOINT = 'https://api.openai.com/v1/audio/transcriptions';
+// NOTE: Whisper transcription is currently not in use.
+// The AssemblyAI service is the active transcription provider.
+// This file is kept for potential future use but the implementation is commented out.
 
 /**
  * Transcribe an episode audio file using OpenAI Whisper API
- * Always compresses audio before upload
-    * @param filename The downloaded filename(e.g., "12345.mp3")
-        * @param episodeId The episode ID
-            * @param apiKeyOverride Optional API key to use instead of env var
+ * @param filename The downloaded filename (e.g., "12345.mp3")
+ * @param episodeId The episode ID
+ * @param apiKeyOverride Optional API key to use instead of env var
+ * @param compressionQuality Bitrate for compression (0 = no compression, use original)
  */
+export async function transcribeEpisode(
+    _filename: string,
+    _episodeId: number,
+    _apiKeyOverride?: string,
+    _compressionQuality: CompressionQuality = 16
+): Promise<Transcript> {
+    throw new Error('Whisper transcription is currently disabled. Please use AssemblyAI instead.');
+}
+
+/*
+// ORIGINAL IMPLEMENTATION - COMMENTED OUT
+
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
+const API_ENDPOINT = 'https://api.openai.com/v1/audio/transcriptions';
+
 export async function transcribeEpisode(
     filename: string,
     episodeId: number,
-    apiKeyOverride?: string
+    apiKeyOverride?: string,
+    compressionQuality: CompressionQuality = 16
 ): Promise<Transcript> {
     const apiKey = apiKeyOverride || OPENAI_API_KEY;
 
@@ -28,18 +43,28 @@ export async function transcribeEpisode(
             throw new Error('Electron API not available');
         }
 
-        // Step 1: Compress audio
-        console.log(`[Whisper] Compressing audio file: ${filename}...`);
-        const compressedFilename = await window.electronAPI.compressAudio(filename, 64);
-        console.log(`[Whisper] Compression complete: ${compressedFilename}`);
+        // Step 1: Prepare audio file (compress or use original based on user preference)
+        let fileToUpload = filename;
+        let didCompress = false;
 
-        // Step 2: Read compressed file
-        const fileBuffer = await window.electronAPI.readFile(compressedFilename);
+        if (compressionQuality === 0) {
+            // User selected "Original" - skip compression entirely
+            console.log(`[Whisper] Using original file (no compression): ${filename}`);
+        } else {
+            // Compress to the specified bitrate
+            console.log(`[Whisper] Compressing audio file: ${filename} to ${compressionQuality}kbps...`);
+            fileToUpload = await window.electronAPI.compressAudio(filename, compressionQuality);
+            didCompress = true;
+            console.log(`[Whisper] Compression complete: ${fileToUpload}`);
+        }
+
+        // Step 2: Read file
+        const fileBuffer = await window.electronAPI.readFile(fileToUpload);
         const blob = new Blob([fileBuffer], { type: 'audio/mpeg' });
 
         // Step 3: Create form data for API request
         const formData = new FormData();
-        formData.append('file', blob, compressedFilename);
+        formData.append('file', blob, fileToUpload); // BUG FIX: was 'compressedFilename'
         formData.append('model', 'whisper-1');
         formData.append('response_format', 'verbose_json');
         formData.append('timestamp_granularities[]', 'word');
@@ -105,12 +130,14 @@ export async function transcribeEpisode(
 
         console.log('[Whisper] Transcript processed:', transcript);
 
-        // Cleanup: Delete the compressed file
-        try {
-            await window.electronAPI.deleteFile(compressedFilename);
-            console.log(`[Whisper] Deleted compressed file: ${compressedFilename}`);
-        } catch (cleanupError) {
-            console.warn(`[Whisper] Failed to delete compressed file: ${compressedFilename}`, cleanupError);
+        // Cleanup: Only delete the compressed file if we created one
+        if (didCompress) {
+            try {
+                await window.electronAPI.deleteFile(fileToUpload);
+                console.log(`[Whisper] Deleted compressed file: ${fileToUpload}`);
+            } catch (cleanupError) {
+                console.warn(`[Whisper] Failed to delete compressed file: ${fileToUpload}`, cleanupError);
+            }
         }
 
         return transcript;
@@ -119,3 +146,4 @@ export async function transcribeEpisode(
         throw error;
     }
 }
+*/

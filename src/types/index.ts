@@ -92,7 +92,7 @@ export interface AdSegment {
 }
 
 export type TranscriptionProvider = 'whisper' | 'google' | 'assemblyai';
-export type CompressionQuality = 32 | 64 | 96 | 128; // kbps
+export type CompressionQuality = 0 | 16 | 32 | 64 | 96 | 128; // kbps (0 = no compression, use original file)
 
 export interface UserPreferences {
     playbackSpeed: number;

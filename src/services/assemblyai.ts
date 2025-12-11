@@ -1,16 +1,21 @@
 import axios from 'axios';
-import type { Transcript, TranscriptSegment, TranscriptWord } from '../types';
+import type { Transcript, TranscriptSegment, TranscriptWord, CompressionQuality } from '../types';
 
 const DEFAULT_API_KEY = import.meta.env.VITE_ASSEMBLYAI_API_KEY || '';
 const BASE_URL = 'https://api.assemblyai.com/v2';
 
 /**
  * Transcribe an episode using AssemblyAI API
+ * @param filename The downloaded filename (e.g., "12345.mp3")
+ * @param episodeId The episode ID
+ * @param apiKeyOverride Optional API key to use instead of env var
+ * @param compressionQuality Bitrate for compression (0 = no compression, use original)
  */
 export async function transcribeEpisode(
     filename: string,
     episodeId: number,
-    apiKeyOverride?: string
+    apiKeyOverride?: string,
+    compressionQuality: CompressionQuality = 16
 ): Promise<Transcript> {
     const apiKey = apiKeyOverride || DEFAULT_API_KEY;
     if (!apiKey) {
@@ -26,22 +31,22 @@ export async function transcribeEpisode(
             throw new Error('Electron API not available');
         }
 
-        // Step 1: Read file
-        console.log(`[AssemblyAI] Reading file: ${filename}`);
-        // We don't compress for AssemblyAI as it handles large files well, 
-        // but we could if bandwidth is a concern. For now, upload raw or maybe compress?
-        // User said "supports things like advanced punctuation". 
-        // Let's stick to the raw file or maybe the compressed one if we want to save upload time.
-        // Whisper implementation compresses to 64kbps. 
-        // Let's use the same compression logic to save bandwidth/time, as podcast files can be huge.
-        // But wait, user said "You can use the already-compressed test file".
-        // I'll use compression to be safe and efficient.
+        // Step 1: Prepare audio file (compress or use original based on user preference)
+        let fileToUpload = filename;
+        let didCompress = false;
 
-        console.log(`[AssemblyAI] Compressing audio file: ${filename}...`);
-        const compressedFilename = await window.electronAPI.compressAudio(filename, 64); // Default to 64kbps
-        console.log(`[AssemblyAI] Compression complete: ${compressedFilename}`);
+        if (compressionQuality === 0) {
+            // User selected "Original" - skip compression entirely
+            console.log(`[AssemblyAI] Using original file (no compression): ${filename}`);
+        } else {
+            // Compress to the specified bitrate
+            console.log(`[AssemblyAI] Compressing audio file: ${filename} to ${compressionQuality}kbps...`);
+            fileToUpload = await window.electronAPI.compressAudio(filename, compressionQuality);
+            didCompress = true;
+            console.log(`[AssemblyAI] Compression complete: ${fileToUpload}`);
+        }
 
-        const fileBuffer = await window.electronAPI.readFile(compressedFilename);
+        const fileBuffer = await window.electronAPI.readFile(fileToUpload);
 
         // Step 2: Upload file
         console.log('[AssemblyAI] Uploading file...');
@@ -67,9 +72,7 @@ export async function transcribeEpisode(
                         "speaker_type": "role",
                         "known_values": [
                             "Advertiser",
-                            "Sponsor",
                             "Host",
-                            "Co-host",
                             "Guest"
                         ]
                     }
@@ -176,11 +179,14 @@ export async function transcribeEpisode(
             createdAt: Date.now(),
         };
 
-        // Cleanup
-        try {
-            await window.electronAPI.deleteFile(compressedFilename);
-        } catch (e) {
-            console.warn('Failed to delete compressed file', e);
+        // Cleanup: Only delete the compressed file if we created one
+        if (didCompress) {
+            try {
+                await window.electronAPI.deleteFile(fileToUpload);
+                console.log(`[AssemblyAI] Deleted compressed file: ${fileToUpload}`);
+            } catch (e) {
+                console.warn('Failed to delete compressed file', e);
+            }
         }
 
         return transcript;
