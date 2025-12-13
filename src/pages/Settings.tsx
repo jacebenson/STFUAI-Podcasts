@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { db } from '../services/db';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { setDebugEnabled } from '../utils/logger';
-import type { UserPreferences, CompressionQuality } from '../types';
+import { LLM_MODELS, DEFAULT_LLM_MODEL } from '../services/skippableSegments';
+import type { UserPreferences, CompressionQuality, LLMModelId, ReasoningEffort } from '../types';
 
 export default function Settings() {
     const [preferences, setPreferences] = useState<UserPreferences | null>(null);
@@ -280,20 +281,6 @@ export default function Settings() {
                         </div>
                     )}
 
-                    <div className="setting-item">
-                        <label>OpenAI API Key (for Advanced Ad Detection)</label>
-                        <input
-                            type="password"
-                            value={preferences.openAiApiKey || ''}
-                            onChange={(e) => updatePreference('openAiApiKey', e.target.value)}
-                            placeholder="Leave empty to use default env key (for now)"
-                            className="setting-input"
-                            style={{ width: '100%', padding: '8px', marginTop: '8px', borderRadius: '4px', border: '1px solid #444', backgroundColor: '#222', color: '#fff' }}
-                        />
-                        <p className="setting-hint" style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>
-                            Required for advanced AI-powered skippable segment detection. If not provided, the app will try to use the built-in API key (for now). This will stop working at some point.
-                        </p>
-                    </div>
                 </section>
 
                 {/* App Updates */}
@@ -494,6 +481,80 @@ export default function Settings() {
                         <p className="setting-description">
                             Lower bitrates reduce file size and transcription costs but may affect audio quality.
                             Select "Original" to skip compression and upload the full-quality audio file for transcription.
+                        </p>
+                    </div>
+
+                    <div className="setting-item">
+                        <label>OpenRouter API Key</label>
+                        <input
+                            type="password"
+                            value={preferences.openRouterApiKey || ''}
+                            onChange={(e) => updatePreference('openRouterApiKey', e.target.value)}
+                            placeholder="Leave empty to use built-in key"
+                            className="setting-input"
+                            style={{ width: '100%', padding: '8px', marginTop: '8px', borderRadius: '4px', border: '1px solid #444', backgroundColor: '#222', color: '#fff' }}
+                        />
+                        <p className="setting-hint" style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>
+                            For advanced AI-powered skippable segment detection via OpenRouter.
+                        </p>
+                    </div>
+
+                    <div className="setting-item">
+                        <label htmlFor="llm-model">Ad Detection Model</label>
+                        <select
+                            id="llm-model"
+                            value={preferences.selectedLLMModel || DEFAULT_LLM_MODEL}
+                            onChange={(e) => updatePreference('selectedLLMModel', e.target.value as LLMModelId)}
+                        >
+                            {LLM_MODELS.map(model => (
+                                <option key={model.id} value={model.id}>
+                                    {model.displayName}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="setting-description">
+                            AI model for advanced ad detection. Prices shown are per million input tokens.
+                        </p>
+                    </div>
+
+                    {LLM_MODELS.find(m => m.id === (preferences.selectedLLMModel || DEFAULT_LLM_MODEL))?.supportsTemperature && (
+                        <div className="setting-item">
+                            <label htmlFor="llm-temperature">Temperature</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <input
+                                    id="llm-temperature"
+                                    type="range"
+                                    min="0"
+                                    max="2"
+                                    step="0.1"
+                                    value={preferences.llmTemperature ?? 0.2}
+                                    onChange={(e) => updatePreference('llmTemperature', parseFloat(e.target.value))}
+                                    style={{ flex: 1 }}
+                                />
+                                <span style={{ minWidth: '40px', textAlign: 'right' }}>{(preferences.llmTemperature ?? 0.2).toFixed(1)}</span>
+                            </div>
+                            <p className="setting-description">
+                                Lower = more consistent. Higher = more creative.
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="setting-item">
+                        <label htmlFor="llm-reasoning">Reasoning Effort</label>
+                        <select
+                            id="llm-reasoning"
+                            value={preferences.llmReasoningEffort || 'none'}
+                            onChange={(e) => updatePreference('llmReasoningEffort', e.target.value as ReasoningEffort)}
+                        >
+                            <option value="none">None (Default)</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <p className="setting-description">
+                            Higher effort may improve accuracy but increases cost and latency. <br />
+                            Even setting reasoning effort from "None" to "Minimal" can <em>~triple</em> processing cost.
                         </p>
                     </div>
 

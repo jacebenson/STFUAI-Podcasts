@@ -51,12 +51,12 @@ Ensure that the time-code you indicate as the END of the skippable segment, is a
 
 For each skippable segment you detect, provide:
 
-1. startTime: The start time of the skippable segment in MM:SS or HH:MM:SS format 
+1. startTime: A string representing the start time of the skippable segment in MM:SS or HH:MM:SS format 
     - e.g., "0:10" for 10 seconds, "5:30" for 5 minutes 30 seconds, "1:30:00" for 1.5 hours
-2. endTime: The end time of the skippable segment in MM:SS or HH:MM:SS format 
+2. endTime: A string representing the end time of the skippable segment in MM:SS or HH:MM:SS format 
     - e.g., "0:10" for 10 seconds, "5:30" for 5 minutes 30 seconds, "1:30:00" for 1.5 hours. 
     - CRITICAL: endTime must always be AFTER startTime, and AT OR BEFORE the end-time of the episode.
-3. confidence: An integer 1-100 (100 = certain it's a skippable segment of one of the detectable "types" below, 1 = extremely uncertain about whether it's a skippable segment)
+3. confidence: An integer between 1 and 100 (100 = certain it's a skippable segment of one of the detectable "types" below, 1 = extremely uncertain about whether it's a skippable segment)
 4. type: The type of skippable segment detected. 
     - Must be one of the following values: "advertisement", "self-promotion", "intro/outro", or "closing credits".
 5. description: A very brief summary of the skippable segment including any important discount codes or links (e.g. "Factor meal delivery service, 10% off code: ABC123")

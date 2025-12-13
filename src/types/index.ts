@@ -94,6 +94,27 @@ export interface AdSegment {
 export type TranscriptionProvider = 'whisper' | 'google' | 'assemblyai';
 export type CompressionQuality = 0 | 16 | 32 | 64 | 96 | 128; // kbps (0 = no compression, use original file)
 
+// LLM Model types for OpenRouter integration
+export type LLMModelId =
+    | 'google/gemini-2.0-flash-lite-001'
+    | 'google/gemini-2.0-flash-001'
+    | 'google/gemini-2.5-flash'
+    | 'openai/gpt-5-mini'
+    | 'meta-llama/llama-4-maverick'
+    | 'anthropic/claude-haiku-4.5'
+    | 'google/gemini-3-pro-preview';
+
+export interface LLMModelConfig {
+    id: LLMModelId;
+    displayName: string;
+    pricePerMillion: number;
+    contextWindow: number;
+    supportsTemperature: boolean;
+}
+
+// Reasoning effort levels for OpenRouter
+export type ReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high';
+
 export interface UserPreferences {
     playbackSpeed: number;
     theme: 'dark' | 'light';
@@ -106,7 +127,10 @@ export interface UserPreferences {
     debugLogsEnabled: boolean;
     refreshIntervalMinutes: number;
     assemblyAiApiKey?: string;
-    openAiApiKey?: string;
+    openRouterApiKey?: string;
+    selectedLLMModel?: LLMModelId;
+    llmTemperature?: number;
+    llmReasoningEffort?: ReasoningEffort;
     includePrereleases: boolean;
 }
 export interface UserSession {

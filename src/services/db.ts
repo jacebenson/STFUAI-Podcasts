@@ -31,6 +31,10 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     debugLogsEnabled: true, //Set to false for production stable build
     refreshIntervalMinutes: 5,
     includePrereleases: true,
+    // OpenRouter LLM settings for advanced ad detection
+    selectedLLMModel: 'google/gemini-2.5-flash',
+    llmTemperature: 0.2,
+    llmReasoningEffort: 'none',
 };
 
 // Test IndexedDB availability

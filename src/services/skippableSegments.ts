@@ -1,7 +1,20 @@
-import type { Transcript, AdSegment, Episode } from '../types';
+import type { Transcript, AdSegment, Episode, LLMModelConfig, LLMModelId } from '../types';
 import { SKIPPABLE_SEGMENTS_SYSTEM_PROMPT } from '../config/prompts';
 
-const API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+const API_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+
+// Available LLM models for advanced ad detection via OpenRouter
+export const LLM_MODELS: LLMModelConfig[] = [
+    { id: 'google/gemini-2.0-flash-lite-001', displayName: 'Gemini 2.0 Flash-Lite ($0.07/M)', pricePerMillion: 0.07, contextWindow: 1000000, supportsTemperature: true },
+    { id: 'google/gemini-2.0-flash-001', displayName: 'Gemini 2.0 Flash ($0.10/M)', pricePerMillion: 0.10, contextWindow: 1000000, supportsTemperature: true },
+    { id: 'google/gemini-2.5-flash', displayName: 'Gemini 2.5 Flash ($0.15/M)', pricePerMillion: 0.15, contextWindow: 1000000, supportsTemperature: true },
+    { id: 'openai/gpt-5-mini', displayName: 'GPT-5 Mini ($0.25/M)', pricePerMillion: 0.25, contextWindow: 400000, supportsTemperature: false },
+    { id: 'meta-llama/llama-4-maverick', displayName: 'Llama 4 Maverick ($0.22/M)', pricePerMillion: 0.22, contextWindow: 1000000, supportsTemperature: true },
+    { id: 'anthropic/claude-haiku-4.5', displayName: 'Claude Haiku 4.5 ($1.00/M)', pricePerMillion: 1.00, contextWindow: 200000, supportsTemperature: true },
+    { id: 'google/gemini-3-pro-preview', displayName: 'Gemini 3 Pro ($2.00/M)', pricePerMillion: 2.00, contextWindow: 1000000, supportsTemperature: true }
+];
+
+export const DEFAULT_LLM_MODEL: LLMModelId = 'google/gemini-2.5-flash';
 
 interface AIAdSegment {
     startTime: string;
@@ -113,7 +126,7 @@ export function detectBasicSegments(transcript: Transcript, duration: number): A
 }
 
 /**
- * Detect advanced skippable segments using OpenAI (LLM)
+ * Detect advanced skippable segments using OpenRouter LLM API
  * This is slower and costs money, but is more accurate and detects more types.
  */
 export async function detectAdvancedSegments(episode: Episode): Promise<AdSegment[]> {
@@ -123,11 +136,15 @@ export async function detectAdvancedSegments(episode: Episode): Promise<AdSegmen
 
     const { db } = await import('./db');
     const prefs = await db.getPreferences();
-    const apiKey = prefs.openAiApiKey || import.meta.env.VITE_OPENAI_API_KEY || '';
+    const apiKey = prefs.openRouterApiKey || import.meta.env.VITE_OPENROUTER_TOKEN || '';
 
     if (!apiKey) {
-        throw new Error('API key is required for advanced ad detection. Please check your settings.');
+        throw new Error('OpenRouter API key is required for advanced ad detection. Please check your settings.');
     }
+
+    // Get model configuration
+    const selectedModelId = prefs.selectedLLMModel || DEFAULT_LLM_MODEL;
+    const modelConfig = LLM_MODELS.find(m => m.id === selectedModelId) || LLM_MODELS.find(m => m.id === DEFAULT_LLM_MODEL)!;
 
     const systemPrompt = SKIPPABLE_SEGMENTS_SYSTEM_PROMPT.replaceAll('{{DURATION}}', Math.floor(episode.transcript.duration).toString());
 
@@ -146,51 +163,51 @@ ${episode.transcript.segments.map(s => `[${formatTime(s.start)}]${s.speaker ? ` 
 `;
 
     try {
-    
-        // const payload = {
-        //     //model: 'gpt-4o', //Not great, and costs more... why in the world?
-        //     //gpt-5.1 is the latest valid model that seems to work well.
-        //     model: 'gpt-5.1', 
-        //     messages: [
-        //         { role: 'system', content: systemPrompt },
-        //         { role: 'user', content: userContent }
-        //     ],
-        //     verbosity: 'low',
-        //     reasoning_effort: 'low',
-        //     //temperature: 0.1
-        // };
-
-        const payload = {
-            model: 'gpt-5-mini', //Model does not support temp or "none" reasoning effort.
+        // Build payload dynamically based on model capabilities
+        const payload: Record<string, unknown> = {
+            model: selectedModelId,
             messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userContent }
             ],
-            verbosity: 'low',
-            reasoning_effort: 'low'
+            response_format: { type: 'json_object' }
         };
 
-        console.log('[AI] Detecting skippable segments with payload:');
-        console.log(payload);
+        // Add temperature if the model supports it
+        if (modelConfig.supportsTemperature) {
+            payload.temperature = prefs.llmTemperature ?? 0.2;
+        }
+
+        // Add reasoning effort - always send to explicitly set the level
+        const reasoningEffort = prefs.llmReasoningEffort ?? 'none';
+        payload.reasoning = {
+            effort: reasoningEffort,
+            exclude: true // Don't return reasoning text in the response
+        };
+
+        console.log('[AI] Detecting skippable segments via OpenRouter');
+        console.log(`[AI] Model: ${selectedModelId}, Temperature: ${payload.temperature ?? 'N/A'}, Reasoning: ${reasoningEffort}`);
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Authorization': `Bearer ${apiKey}`,
+                'HTTP-Referer': 'https://stfuai.app',
+                'X-Title': 'STFUAI Podcasts'
             },
             body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+            throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
         const content = data.choices[0].message.content;
 
-        // Robust JSON extraction
+        // Robust JSON extraction (response_format should guarantee valid JSON, but be safe)
         let jsonStr = content.trim();
 
         // If content is wrapped in markdown code blocks, extract it

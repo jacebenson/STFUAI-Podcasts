@@ -103,8 +103,8 @@ describe('Skippable Segment Detection', () => {
         });
     });
 
-    describe('detectAdvancedSegments (OpenAI)', () => {
-        it('should call OpenAI API and parse result', async () => {
+    describe('detectAdvancedSegments (OpenRouter)', () => {
+        it('should call OpenRouter API and parse result', async () => {
             const mockResponse = {
                 choices: [{
                     message: {

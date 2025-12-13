@@ -94,7 +94,7 @@ export const analytics = {
 
     trackSettingsChange: (setting: string, oldValue: any, newValue: any) => {
         // PRIVACY CHECK: Do not track API keys
-        if (setting === 'assemblyAiApiKey' || setting === 'openAiApiKey') {
+        if (setting === 'assemblyAiApiKey' || setting === 'openRouterApiKey') {
             return;
         }
 
