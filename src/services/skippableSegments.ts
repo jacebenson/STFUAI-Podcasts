@@ -25,6 +25,28 @@ interface AIAdSegment {
 }
 
 /**
+ * Sanitize JSON string to fix unquoted time values.
+ * Sometimes the AI returns times like 15:10 without quotes, which breaks JSON.parse().
+ * This function detects patterns like `: 15:10` or `: 1:23:45` and wraps them in quotes.
+ */
+function sanitizeJsonTimestamps(jsonStr: string): string {
+    // Match a colon (property separator) followed by optional whitespace,
+    // then an unquoted time pattern (M:SS, MM:SS, H:MM:SS, or HH:MM:SS),
+    // followed by a comma, closing brace, or end of line.
+    // The negative lookbehind (?<!") ensures we don't match already-quoted values.
+    // The negative lookahead (?!") ensures there's no closing quote immediately after.
+    const unquotedTimePattern = /:\s*(?<!")(\d{1,2}:\d{2}(?::\d{2})?)(?!")(\s*[,}\]])/g;
+
+    const sanitized = jsonStr.replace(unquotedTimePattern, ': "$1"$2');
+
+    if (sanitized !== jsonStr) {
+        console.warn('[AI] Detected and fixed unquoted time values in JSON response');
+    }
+
+    return sanitized;
+}
+
+/**
  * Parse time string (MM:SS or HH:MM:SS) to seconds
  */
 function parseTime(timeStr: string | number): number {
@@ -222,6 +244,9 @@ ${episode.transcript.segments.map(s => `[${formatTime(s.start)}]${s.speaker ? ` 
                 jsonStr = content.substring(firstBracket, lastBracket + 1);
             }
         }
+
+        // Sanitize the JSON to fix any unquoted time values before parsing
+        jsonStr = sanitizeJsonTimestamps(jsonStr);
 
         const rawSegments: AIAdSegment[] = JSON.parse(jsonStr);
 
