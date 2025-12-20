@@ -21,6 +21,10 @@ export interface ElectronAPI {
     quitAndInstall: () => Promise<void>;
     getVersion: () => Promise<string>;
     onUpdateStatus: (callback: (status: any) => void) => () => void;
+    secureStorageAvailable: () => Promise<boolean>;
+    secureStorageSet: (key: string, value: string) => Promise<boolean>;
+    secureStorageGet: (key: string) => Promise<string | null>;
+    secureStorageDelete: (key: string) => Promise<boolean>;
 }
 
 declare global {
