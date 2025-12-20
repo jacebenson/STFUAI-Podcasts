@@ -35,6 +35,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
     selectedLLMModel: 'google/gemini-2.5-flash',
     llmTemperature: 0.2,
     llmReasoningEffort: 'none',
+    autoDetectSkippables: true,
 };
 
 // Test IndexedDB availability

@@ -316,6 +316,20 @@ export const usePodcastStore = create<PodcastState>((set, get) => ({
                 // Don't fail the whole transcription if ad detection fails
             }
 
+            // Auto-detect advanced segments if enabled
+            try {
+                const prefs = await db.getPreferences();
+                if (prefs.autoDetectSkippables !== false) { // Default to true
+                    console.log('Automatic advanced skippable segment detection enabled, triggering...');
+                    // We can call the store method directly
+                    get().detectAds(episodeId);
+                } else {
+                    console.log('Automatic advanced skippable segment detection is disabled.');
+                }
+            } catch (e) {
+                console.error('Failed to trigger automatic advanced detection:', e);
+            }
+
         } catch (error) {
             console.error('Failed to transcribe episode:', error);
             set((state) => ({

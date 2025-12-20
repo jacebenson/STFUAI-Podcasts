@@ -132,6 +132,7 @@ export interface UserPreferences {
     llmTemperature?: number;
     llmReasoningEffort?: ReasoningEffort;
     includePrereleases: boolean;
+    autoDetectSkippables?: boolean;
 }
 export interface UserSession {
     username: string;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Play, SkipForward } from 'lucide-react';
+import { ExternalLink, Play, Sparkles, Settings as SettingsIcon, Zap } from 'lucide-react';
 
 export const Help: React.FC = () => {
     const scrollToSection = (id: string) => {
@@ -29,18 +29,18 @@ export const Help: React.FC = () => {
                             </button>
                         </li>
                         <li>
+                            <button onClick={() => scrollToSection('ad-detection')} className="text-accent hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                Ad Detection (Basic vs. Advanced)
+                            </button>
+                        </li>
+                        <li>
                             <button onClick={() => scrollToSection('configuration')} className="text-accent hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                                Configuration (API Keys)
+                                Configuration (API Keys & Models)
                             </button>
                         </li>
                         <li>
-                            <button onClick={() => scrollToSection('using-player')} className="text-accent hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                                Using the Player
-                            </button>
-                        </li>
-                        <li>
-                            <button onClick={() => scrollToSection('support')} className="text-accent hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                                Support
+                            <button onClick={() => scrollToSection('troubleshooting')} className="text-accent hover:underline" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                                Troubleshooting
                             </button>
                         </li>
                     </ul>
@@ -50,136 +50,139 @@ export const Help: React.FC = () => {
                 <section id="getting-started" style={{ marginBottom: '3rem' }}>
                     <h2>Getting Started</h2>
                     <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                        <strong>STFUAI Podcasts</strong> is an AI-powered podcast player designed to respect your time.
-                        STFUAIP uses AI to detect and automatically skip advertisements, intros, outros, and self-promotion segments in your favorite podcasts.
+                        <strong>STFUAI Podcasts</strong> is an intelligent podcast player that respects your time.
+                        It automatically transcribes your episodes and detects advertisements, intros, outros, and self-promotion segments, allowing you to skip them seamlessly.
                     </p>
-                    <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                        To get the most out of the app, you'll need to configure a few settings. Don't worry, it should only take a few minutes.
+                    <div style={{ backgroundColor: 'rgba(30, 215, 96, 0.1)', padding: '1rem', borderRadius: '0.5rem', borderLeft: '4px solid var(--accent-color)', marginTop: '1rem' }}>
+                        <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                            <strong>Good news:</strong> You no longer need to bring your own API keys to get started! The app comes with shared keys pre-configured, so you can start listening and skipping ads immediately.
+                        </p>
+                    </div>
+                </section>
+
+                {/* Ad Detection */}
+                <section id="ad-detection" style={{ marginBottom: '3rem' }}>
+                    <h2>Ad Detection: Basic vs. Advanced</h2>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                        STFUAI Podcasts uses two layers of intelligence to find skippable content.
                     </p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                        <div style={{ backgroundColor: '#222', padding: '1.5rem', borderRadius: '0.5rem' }}>
+                            <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Zap size={18} color="#FFD700" /> Basic Detection
+                            </h3>
+                            <p style={{ fontSize: '0.9rem', color: '#aaa' }}>
+                                <strong>Automatic & Instanteous</strong>
+                            </p>
+                            <p style={{ fontSize: '0.95rem', lineHeight: '1.5' }}>
+                                As soon as an episode is transcribed, the app looks for speakers explicitly labeled as "Advertiser" or "Sponsor".
+                            </p>
+                            <ul style={{ paddingLeft: '1.2rem', fontSize: '0.9rem', color: '#ccc' }}>
+                                <li>Happens automatically in the background.</li>
+                                <li>Very fast.</li>
+                                <li><strong>Free</strong> to use.</li>
+                                <li>Great for podcasts with clear ad breaks.</li>
+                            </ul>
+                        </div>
+
+                        <div style={{ backgroundColor: '#222', padding: '1.5rem', borderRadius: '0.5rem' }}>
+                            <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Sparkles size={18} color="var(--accent-color)" /> Advanced Detection
+                            </h3>
+                            <p style={{ fontSize: '0.9rem', color: '#aaa' }}>
+                                <strong>On-Demand AI Analysis</strong>
+                            </p>
+                            <p style={{ fontSize: '0.95rem', lineHeight: '1.5' }}>
+                                Uses powerful LLMs (like Gemini 2.0 or GPT-5) to read the transcript and find context-based ads, long intros, and chit-chat.
+                            </p>
+                            <ul style={{ paddingLeft: '1.2rem', fontSize: '0.9rem', color: '#ccc' }}>
+                                <li><strong>Automatic by default:</strong> Runs immediately after transcription (can be disabled in Settings).</li>
+                                <li>Can be triggered manually by clicking the <strong>Analyze</strong> button.</li>
+                                <li>Smart enough to find "baked-in" reads.</li>
+                                <li>Uses OpenRouter for model choice.</li>
+                                <li>Higher accuracy.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </section>
 
                 {/* Configuration */}
                 <section id="configuration" style={{ marginBottom: '3rem' }}>
-                    <h2>Configuration</h2>
+                    <h2>Configuration & API Keys</h2>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        STFUAI Podcasts relies on third-party APIs to transcribe audio and detect ad segments. You will need to provide your own API keys for these services.
-                    </p>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        The AssemblyAI API key is mandatory (but free!). The OpenAI API key is optional, but recommended for more advanced skippable-segment detection.
+                        While the app works out of the box, power users can configure their own API keys in <SettingsIcon size={14} style={{ display: 'inline', marginBottom: '-2px' }} /> <strong>Settings</strong> to avoid shared rate limits or to use specific AI models.
                     </p>
 
                     <div style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            AssemblyAI (Transcription & basic ad detection)
-                        </h3>
-                        <p style={{ color: 'var(--text-secondary)', marginLeft: '2rem' }}>
-                            Used to convert podcast audio into diarized text for analysis and basic ad detection. If you only have this and not the OpenAI API key, you will still be able to skip most ads - typically for free!
+                        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>1. Transcription (AssemblyAI)</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                            We use AssemblyAI for high-quality speech-to-text. This is the foundation of all ad detection.
                         </p>
-                        <ol style={{ marginLeft: '2rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                            <li>
-                                Go to <a href="https://www.assemblyai.com/dashboard/signup" target="_blank" rel="noreferrer" className="text-accent hover:underline" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                    AssemblyAI Dashboard <ExternalLink size={14} />
-                                </a> and sign up.
-                            </li>
-                            <li>Generate an API key and copy it from the dashboard.</li>
-                            <li>Open <strong>Settings</strong> in this app.</li>
-                            <li>Paste the key into the <strong>AssemblyAI API Key</strong> field.</li>
-                        </ol>
-                        <p style={{ color: 'var(--text-secondary)', marginLeft: '2rem' }}>
-                            That's it! <strong>STFUAI Podcasts</strong> should now be ready to go! You can subscribe to and start skipping ads in your favorite podcasts, or you can continue to set up the OpenAI API key for even more advanced and accurate ad detection.
+                        <p style={{ fontSize: '0.9rem', color: '#aaa', fontStyle: 'italic' }}>
+                            Optional: Add your own key from <a href="https://www.assemblyai.com" target="_blank" rel="noreferrer" className="text-accent hover:underline">assemblyai.com</a> if you hit rate limits.
                         </p>
                     </div>
 
                     <div style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            OpenAI (Advanced Ad & Skippable Segment Detection)
-                        </h3>
-                        <p style={{ color: 'var(--text-secondary)', marginLeft: '2rem' }}>
-                            Used to analyze the transcript and identify skippable segments.
+                        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>2. Advanced AI (OpenRouter)</h3>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                            We use OpenRouter to access top-tier LLMs for the "Analyze" feature.
                         </p>
-                        <ol style={{ marginLeft: '2rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                        <ul style={{ paddingLeft: '1.5rem', color: 'var(--text-secondary)' }}>
                             <li>
-                                Go to <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer" className="text-accent hover:underline" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                    OpenAI Platform <ExternalLink size={14} />
-                                </a> and sign up/log in.
+                                <strong>Automatic Analysis:</strong> You can toggle "Automatic advanced skippable segment detection" on or off. It is enabled by default.
+                                <br />
+                                <em style={{ fontSize: '0.9em', color: '#888' }}>If disabled, basic detection (via speaker labels) will still run automatically, and you can manually trigger advanced analysis anytime.</em>
                             </li>
-                            <li>Create a new secret key.</li>
-                            <li>Open <strong>Settings</strong> in STFUAI Podcasts.</li>
-                            <li>Paste the key into the <strong>OpenAI API Key</strong> field.</li>
-                        </ol>
+                            <li>
+                                <strong>API Key:</strong> Optional. Get one at <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer" className="text-accent hover:underline">openrouter.ai</a>.
+                            </li>
+                            <li>
+                                <strong>Ad Detection Model:</strong> You can choose which AI model analyzes your podcasts.
+                                <ul style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#aaa' }}>
+                                    <li><strong>Gemini 2.0 Flash:</strong> Fast, cheap, and very capable. (Recommended)</li>
+                                    <li><strong>GPT-5 Mini:</strong> High intelligence, slightly more expensive.</li>
+                                    <li><strong>Claude Haiku 4.5:</strong> Good balance of speed and nuance.</li>
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
 
-                    <div style={{ backgroundColor: 'rgba(30, 215, 96, 0.1)', padding: '1rem', borderRadius: '0.5rem', borderLeft: '4px solid var(--accent-color)' }}>
-                        <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                            <strong>Note:</strong> Your API keys are stored locally on your device and are never sent to our servers.
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>3. Audio Compression</h3>
+                        <p style={{ color: 'var(--text-secondary)' }}>
+                            Found in Developer Settings. You can choose to compress audio files before uploading them for transcription to save bandwidth, or select <strong>"Original (No Compression)"</strong> for the highest possible transcription accuracy.
                         </p>
                     </div>
                 </section>
 
-                {/* Using the Player */}
-                <section id="using-player" style={{ marginBottom: '3rem' }}>
-                    <h2>Using the Player</h2>
+                {/* Troubleshooting */}
+                <section id="troubleshooting">
+                    <h2>Troubleshooting & Support</h2>
 
-                    <div style={{ marginBottom: '2rem' }}>
-                        <h3><Play size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} /> Playback</h3>
-                        <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                            Click any episode to start playing. The player bar at the bottom controls playback, volume, and speed.
-                            Click the player bar to expand the <strong>Full Player</strong> view.
+                    <div className="faq-item" style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ marginBottom: '0.5rem' }}>Why isn't the "Analyze" button working?</h4>
+                        <p style={{ color: 'var(--text-secondary)' }}>
+                            Ensure the episode has finished downloading and transcribing first. If it still fails, check the <strong>Model</strong> selection in Settings or try adding your own OpenRouter API key.
                         </p>
-                        {/* Placeholder for Player UI Screenshot */}
-                        <div style={{
-                            width: '100%',
-                            height: '200px',
-                            backgroundColor: '#333',
-                            borderRadius: '0.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginTop: '1rem',
-                            border: '1px dashed #555'
-                        }}>
-                            <span style={{ color: '#777' }}>[Screenshot: Player UI, coming soon. Unless I forget to add it. Let's be real, I'm kind of a dork.]</span>
-                        </div>
                     </div>
 
-                    <div style={{ marginBottom: '2rem' }}>
-                        <h3><SkipForward size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} /> Ad Skipping</h3>
-                        <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                            When you play an episode or add it to your queue, STFUAI Podcasts will automatically transcribe it and analyze that transcript for ads.
-                            Detected ad segments will be highlighted in <strong>red</strong> on the progress bar.
-                            When playback reaches a red segment, it will automatically skip to the end of the segment!
+                    <div className="faq-item" style={{ marginBottom: '1.5rem' }}>
+                        <h4 style={{ marginBottom: '0.5rem' }}>Where can I get help?</h4>
+                        <p style={{ color: 'var(--text-secondary)' }}>
+                            Join our community on Discord for the latest updates, feature requests, and support.
                         </p>
-                        {/* Placeholder for Ad Skipping Screenshot */}
-                        <div style={{
-                            width: '100%',
-                            height: '100px',
-                            backgroundColor: '#333',
-                            borderRadius: '0.5rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginTop: '1rem',
-                            border: '1px dashed #555'
-                        }}>
-                            <span style={{ color: '#777' }}>[Screenshot: Progress Bar with Ad Segments, coming soon. Unless I forget to add it. Let's be real, I'm kind of a dork.]</span>
-                        </div>
+                        <p style={{ marginTop: '0.5rem' }}>
+                            <a href="https://discord.gg/PGJgQV2vzr" target="_blank" rel="noreferrer" className="text-accent hover:underline" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <ExternalLink size={14} /> Join the STFUAI Discord
+                            </a>
+                        </p>
                     </div>
-                </section>
 
-                {/* Support */}
-                <section id="support">
-                    <h2>Support</h2>
-                    <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                        Need help? Have a feature request? We'd love to hear from you.
-                    </p>
-                    <ul style={{ listStyle: 'none', padding: 0, marginTop: '1rem' }}>
-                        <li style={{ marginBottom: '0.5rem' }}>
-                            <strong>Email:</strong> <a href="mailto:help@stfuai.com" className="text-accent hover:underline">help@stfuai.com</a>
-                        </li>
-                        <li>
-                            <strong>Website:</strong> <a href="https://stfuai.com" target="_blank" rel="noreferrer" className="text-accent hover:underline">https://stfuai.com</a>
-                        </li>
-                    </ul>
+                    <div style={{ fontSize: '0.8rem', color: '#555', marginTop: '3rem', borderTop: '1px solid #333', paddingTop: '1rem' }}>
+                        STFUAI Podcasts &copy; {new Date().getFullYear()}
+                    </div>
                 </section>
             </div>
         </div>

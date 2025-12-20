@@ -287,6 +287,86 @@ export default function Settings() {
 
                 </section>
 
+                {/* Analysis Settings */}
+                <section className="settings-section">
+                    <h2>Analysis</h2>
+
+                    <div className="setting-item">
+                        <label htmlFor="auto-detect-skippables" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input
+                                id="auto-detect-skippables"
+                                type="checkbox"
+                                checked={preferences.autoDetectSkippables ?? true}
+                                onChange={(e) => updatePreference('autoDetectSkippables', e.target.checked)}
+                            />
+                            Automatic advanced skippable segment detection
+                        </label>
+                        <p className="setting-description">
+                            Automatically run advanced AI analysis (via OpenRouter) immediately after transcription.
+                            If disabled, you will still get basic detection (via speaker labels) and can manually trigger advanced analysis from the player.
+                        </p>
+                    </div>
+
+                    <div className="setting-item">
+                        <label htmlFor="llm-model">Ad Detection Model</label>
+                        <select
+                            id="llm-model"
+                            value={preferences.selectedLLMModel || DEFAULT_LLM_MODEL}
+                            onChange={(e) => updatePreference('selectedLLMModel', e.target.value as LLMModelId)}
+                        >
+                            {LLM_MODELS.map(model => (
+                                <option key={model.id} value={model.id}>
+                                    {model.displayName}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="setting-description">
+                            AI model for advanced ad detection. Prices shown are per million input tokens.
+                        </p>
+                    </div>
+
+                    {LLM_MODELS.find(m => m.id === (preferences.selectedLLMModel || DEFAULT_LLM_MODEL))?.supportsTemperature && (
+                        <div className="setting-item">
+                            <label htmlFor="llm-temperature">Temperature</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <input
+                                    id="llm-temperature"
+                                    type="range"
+                                    min="0"
+                                    max="2"
+                                    step="0.1"
+                                    value={preferences.llmTemperature ?? 0.2}
+                                    onChange={(e) => updatePreference('llmTemperature', parseFloat(e.target.value))}
+                                    style={{ flex: 1 }}
+                                />
+                                <span style={{ minWidth: '40px', textAlign: 'right' }}>{(preferences.llmTemperature ?? 0.2).toFixed(1)}</span>
+                            </div>
+                            <p className="setting-description">
+                                Lower = more consistent. Higher = more creative.
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="setting-item">
+                        <label htmlFor="llm-reasoning">Reasoning Effort</label>
+                        <select
+                            id="llm-reasoning"
+                            value={preferences.llmReasoningEffort || 'none'}
+                            onChange={(e) => updatePreference('llmReasoningEffort', e.target.value as ReasoningEffort)}
+                        >
+                            <option value="none">None (Default)</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <p className="setting-description">
+                            Higher effort may improve accuracy but increases cost and latency. <br />
+                            Even setting reasoning effort from "None" to "Minimal" can <em>~triple</em> processing cost.
+                        </p>
+                    </div>
+                </section>
+
                 {/* App Updates */}
                 <section className="settings-section">
                     <h2>App Updates</h2>
@@ -503,64 +583,7 @@ export default function Settings() {
                         </p>
                     </div>
 
-                    <div className="setting-item">
-                        <label htmlFor="llm-model">Ad Detection Model</label>
-                        <select
-                            id="llm-model"
-                            value={preferences.selectedLLMModel || DEFAULT_LLM_MODEL}
-                            onChange={(e) => updatePreference('selectedLLMModel', e.target.value as LLMModelId)}
-                        >
-                            {LLM_MODELS.map(model => (
-                                <option key={model.id} value={model.id}>
-                                    {model.displayName}
-                                </option>
-                            ))}
-                        </select>
-                        <p className="setting-description">
-                            AI model for advanced ad detection. Prices shown are per million input tokens.
-                        </p>
-                    </div>
 
-                    {LLM_MODELS.find(m => m.id === (preferences.selectedLLMModel || DEFAULT_LLM_MODEL))?.supportsTemperature && (
-                        <div className="setting-item">
-                            <label htmlFor="llm-temperature">Temperature</label>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <input
-                                    id="llm-temperature"
-                                    type="range"
-                                    min="0"
-                                    max="2"
-                                    step="0.1"
-                                    value={preferences.llmTemperature ?? 0.2}
-                                    onChange={(e) => updatePreference('llmTemperature', parseFloat(e.target.value))}
-                                    style={{ flex: 1 }}
-                                />
-                                <span style={{ minWidth: '40px', textAlign: 'right' }}>{(preferences.llmTemperature ?? 0.2).toFixed(1)}</span>
-                            </div>
-                            <p className="setting-description">
-                                Lower = more consistent. Higher = more creative.
-                            </p>
-                        </div>
-                    )}
-
-                    <div className="setting-item">
-                        <label htmlFor="llm-reasoning">Reasoning Effort</label>
-                        <select
-                            id="llm-reasoning"
-                            value={preferences.llmReasoningEffort || 'none'}
-                            onChange={(e) => updatePreference('llmReasoningEffort', e.target.value as ReasoningEffort)}
-                        >
-                            <option value="none">None (Default)</option>
-                            <option value="minimal">Minimal</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                        </select>
-                        <p className="setting-description">
-                            Higher effort may improve accuracy but increases cost and latency. <br />
-                            Even setting reasoning effort from "None" to "Minimal" can <em>~triple</em> processing cost.
-                        </p>
-                    </div>
 
                     <div className="setting-item">
                         <label htmlFor="debug-logs" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
